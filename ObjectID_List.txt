@@ -1,0 +1,71 @@
+Object ID List
+
+Decimal:
+
+7 = Blue Door [
+
+    OBJID:7 XPos:31 YPos:19 HEX:0000000000000000000003011d000000000000010000 [:41]  (dngn_flame_00.zmb)
+
+]
+
+8 = Gray Monster Door [
+    OBJID:8 XPos:45 YPos:31 HEX:00000100010000000000010302040000000000010000 [:24]  (dngn_flame_00.zmb)
+]
+
+9 = Key-Door
+
+10 = Wooden Chest [
+
+    OBJID:10 XPos:38 YPos:33 HEX:00000100000000000000010100000000000000010000 [:26]  (dngn_flame_00.zmb) (Contains Key)
+    OBJID:10 XPos:45 YPos:8 HEX:00001900000000000100010100000000000000010000 [:68]  (dngn_flame_00.zmb) (Contains Red Rupee)
+
+    HEX [
+        Byte 3 = Content ? {
+            # Testet with Object: OBJID:10 XPos:38 YPos:33 HEX:00000100000000000000010100000000000000010000
+            1 = Key
+            2 = Green Rupee (1)
+            3 = Sword
+            4 = Shield
+            5 = Key (Textbox: "NO MESSAGE" (No Key Received!))
+            6 = Force Gem (No Textbox)
+            7 = Bombs
+
+            8 = Bow (No TB (TextBox))
+            9 = Big Green Rupee (100)
+            10 = Heart Container
+            11 = Key (Textbox: "NO MESSAGE" (No Key Received!))
+            12 = Boomerang
+            13 = Shovel (No TB)
+            14 = Bombchus (No TB)
+            15 = Boss Key
+
+            16 = Red Potion (Textbox: "NO MESSAGE")
+            17 = Key (Textbox: "NO MESSAGE" (No Key Received!))
+            18 = Key (Textbox: "NO MESSAGE" (No Key Received!))
+            19 = Treasure Chart (No TB)
+            20 = Treasure Chart (No TB)
+            21 = Treasure Chart (No TB)
+            22 = Treasure Chart (No TB)
+            23 = Key (Textbox: "NO MESSAGE" (No Key Received!))
+
+            24 = Blue Rupee (5)
+            25 = Red Rupee (20)
+            26 = Big Red Rupee (200)
+            27 = Big Gold Rupee (300)
+            28 = Force Gem (Textbox: "NO MESSAGE" , No Force Gem in hands afterwards)
+            29 = Red Force Gem (Textbox: "NO MESSAGE" , No Force Gem in hands afterwards)
+            30 = Blue Force Gem (Textbox: "NO MESSAGE" , No Force Gem in hands afterwards)
+            31 = Hammer (No TB)
+
+            TODO: Continue at: (  0A 00 00 00 21 25 00 00 1F 00 00 00 00 00 00 00 01 01 00 00 00 00 00 00 00 01 00 00 0A 00 00 00 1F 25 00 00 1E 00 00 00 00 00 00 00 01 01 00 00 00 00 00 00 00 01 00 00  ) (dngn_flame 01)
+        }
+    ]
+
+]
+
+63 = Breakable Yellow Brick [
+    OBJID:63 XPos:37 YPos:10 HEX:00000000000000000000010100000000000000010000 [:56]  (dngn_flame_00.zmb)
+    OBJID:63 XPos:38 YPos:10 HEX:00000000000000000000010100000000000000010000 [:57]  (dngn_flame_00.zmb)
+    OBJID:63 XPos:37 YPos:11 HEX:00000000000000000000010100000000000000010000 [:58]  (dngn_flame_00.zmb)
+    OBJID:63 XPos:38 YPos:11 HEX:00000000000000000000010100000000000000010000 [:59]  (dngn_flame_00.zmb)
+]

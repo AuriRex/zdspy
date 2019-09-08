@@ -1,0 +1,17 @@
+Enemy Types:
+
+CHUC = Chu Chu / Slime
+
+KETH = Bat
+
+NMSG = ?
+
+ATAR = ?
+
+PSBL = ?
+
+SCAR = ?
+
+SWOB = ?
+
+ITGE = ?
