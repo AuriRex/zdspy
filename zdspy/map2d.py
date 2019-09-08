@@ -367,7 +367,7 @@ class MAP2D:
             self.palette.bitmap().save(path+path_palette+name+"_palette.png", "PNG")
 
 
-def dump_bimap_all(input_path, output_path):
+def dump_bitmap_all(input_path, output_path):
 
     workdir = input_path # "../../../DS/extracted/data/Map2D/"
     outdir = output_path # "../infodump/map2d/"
@@ -380,14 +380,10 @@ def dump_bimap_all(input_path, output_path):
         for directory in d:
             dirs.append(os.path.join(r, directory))
 
-    # print(dirs)
-
     for d in dirs:
         for _r, _d, f in os.walk(d):
             for file in f:
                 name = os.path.basename(os.path.normpath(d))
-                # print(name)
                 print(d+"/"+file)
-                # print(file)
                 MAP2D(d.ReadFile(d+"/"+file)).save_bitmap(outdir, name+"_"+file[:-4], path_tiles="tiles/", path_palette="palettes/")
 
