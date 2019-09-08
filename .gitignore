@@ -1,3 +1,8 @@
+# Project Stuff
+infodump/*.zip
+infodump/map2d/
+infodump/st_map2d/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
