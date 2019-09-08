@@ -212,7 +212,7 @@ class MAP2D_TILES_CE:
         self.data = data
         self.tile_size = tile_size
 
-        # 8x8 = 1 Tile (128 Byte)
+        # 8x8 = 1 Tile (64 Byte)
 
         self.color_ref = []
         self.color_data = []
@@ -247,7 +247,7 @@ class MAP2D_TILES_CE:
 
 class MAP2D_TILES: # .nbfc
 
-    # 8x8 Tiles - 16 Byte for one TileRow (128 Byte for one Tile)
+    # 8x8 Tiles - 8 Byte for one TileRow (64 Byte for one Tile)
 
     def __init__(self, data):
         self.data = data
