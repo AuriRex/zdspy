@@ -108,6 +108,8 @@ class BHIO(gh.ZDS_GenericElementHeaderRaw):
             print("["+str(i)+"] "+gen.identification + " Size: "+str(gen.size2))
             if gen.identification == "HFND":
                 self.children.append( HFND(gen.data) )
+            else:
+                print("Non HFND Header Identification!")
 
     def calculate_size(self):
         self.size = 16 + len(self.inbetween_data) + len(self.children) * 160
