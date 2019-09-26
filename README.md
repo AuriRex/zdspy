@@ -12,3 +12,7 @@ Project for a Python library for modifying files from **The Legend of Zelda: Pha
 gt_drag_2.py requires *pyglet* and *ndspy* to function
 
 multiple other functions require *ndspy* too
+
+# Check the Wiki for more information!
+
+https://github.com/AuriRex/zdspy/wiki
