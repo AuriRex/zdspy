@@ -9,9 +9,9 @@ Project for a Python library for modifying files from **The Legend of Zelda: Pha
 
 # Notes
 
-gt_drag_2.py requires *pyglet* and *ndspy* to function
+gt_drag_2.py requires *pyglet* and *[ndspy](https://github.com/RoadrunnerWMC/ndspy "ndspy")* to function
 
-multiple other functions require *ndspy* too
+multiple other functions require *[ndspy](https://github.com/RoadrunnerWMC/ndspy "ndspy")* too
 
 # Check the Wiki for more information!
 
