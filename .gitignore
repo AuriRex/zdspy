@@ -2,6 +2,7 @@
 infodump/*.zip
 infodump/map2d/
 infodump/st_map2d/
+extracted/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

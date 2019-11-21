@@ -3,89 +3,142 @@ import os
 from getinfo import ZDS_PH_MAP
 from zdspy import zmb as zds
 
-random.seed( 404 )
+def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
 
-workdir = "../../DS/extracted/data/Map/"
+    random.seed( seed )
 
-outdir = "../../DS/randomize/data/Map/"
+    banlist = ["battle00","battle01","battle02","battle03","battle04","battle05","battle06","battle07","battle08","battle09","battle10","battle11","player_dngn","demo_op","demo_chase","demo_end","demo_title"]
 
-enableBanlist = True
-banlist = ["battle00","battle01","battle02","battle03","battle04","battle05","battle06","battle07","battle08","battle09","battle10","battle11","player_dngn","demo_op","demo_chase","demo_end","demo_title"]
+    # Beta maps:
+    banlist.append("isle_first")
+    banlist.append("isle_ice")
 
-# Beta maps:
-banlist.append("isle_first")
-banlist.append("isle_ice")
+    # Types:
+    #   nl -> no logic
+    #   nld -> no logic dual
+    #   nll -> no logic linked
 
-
-
-# Types:
-#   nl -> no logic
-#   nld -> no logic dual
-#   nll -> no logic linked
-randoType = "nll"
-
-dirs = []
-# r=root, d=directories, f = files
-for r, d, f in os.walk(workdir):
-    for directory in d:
-        dirs.append(os.path.join(r, directory))
+    dirs = []
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(workdir):
+        for directory in d:
+            dirs.append(os.path.join(r, directory))
 
 
-mapl = []
+    mapl = []
 
-print("Loading maps...")
+    print("Loading maps...")
 
-for d in dirs:
-    mapl.append( ZDS_PH_MAP( d, p=False ) )
-
-
-w_mapl = mapl.copy() # Used to write the new Values to
-
-zmbl = {}
-
-warpcountl = {}
-warpl = {}
-
-for mp in mapl:
-    mp_name = mp.getName()
-    print(mp_name)
-    for c in mp.children:
-        iden = c.getID()
-        filename = "zmb/" + mp_name + "_" + iden + ".zmb"
-        print(filename)
-        zmb = zds.ZMB( c.getData().getFileByName(filename) )
-        zmbl[filename] = zmb
-        warph = zmb.get_child("WARP")
-        if not (warph == None):
-            warpcountl[filename] = len(warph.children)
-            for i, wrp in enumerate(warph.children):
-                print(wrp)
-                warpl[filename+str(i)] = wrp
-
-# Saved for later:
-# random_item = random.choice(list)
-
-print(zmbl)
-
-print(warpl)
+    for d in dirs:
+        mapl.append( ZDS_PH_MAP( d, p=False ) )
 
 
-for m, w in warpl.items():
-    if int(m.split(".zmb")[1]) == 0:
-        mapname = m.split(".zmb")[0][4:]
-        levelname = mapname[:-3]
-        print()
-        print(levelname + ": " + mapname)
-    print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + ": " + str(w))
+    w_mapl = mapl.copy() # Used to write the new Values to
 
-# print(warpcountl)
+    zmbl = {}
 
-# Create a list of tuples sorted by index 1 i.e. value field     
-listofTuples = sorted(warpcountl.items() ,  key=lambda x: x[1])
-# Iterate over the sorted sequence
-for elem in listofTuples:
-    #out_str = str(elem[0]) + " " + str(elem[1]) + "\n" + out_str
-    print(elem[0] , " ::" , elem[1] )
+    warpcountl = {}
+    warpl = {}
+
+    for mp in mapl:
+        mp_name = mp.getName()
+        print(mp_name)
+        for c in mp.children:
+            iden = c.getID()
+            filename = "zmb/" + mp_name + "_" + iden + ".zmb"
+            print(filename)
+            zmb = zds.ZMB( c.getData().getFileByName(filename) )
+            zmbl[filename] = zmb
+            warph = zmb.get_child("WARP")
+            if not (warph == None):
+                warpcountl[filename] = len(warph.children)
+                for i, wrp in enumerate(warph.children):
+                    print(wrp)
+                    warpl[filename+str(i)] = wrp
+
+    # Saved for later:
+    # random_item = random.choice(list)
+
+    print(zmbl)
+
+    print(warpl)
+
+
+    for m, w in warpl.items():
+        if int(m.split(".zmb")[1]) == 0:
+            mapname = m.split(".zmb")[0][4:]
+            levelname = mapname[:-3]
+            print()
+            print(levelname + ": " + mapname)
+        print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + ": " + str(w))
+
+    # print(warpcountl)
+
+    # Create a list of tuples sorted by index 1 i.e. value field     
+    listofTuples = sorted(warpcountl.items() ,  key=lambda x: x[1])
+    # Iterate over the sorted sequence
+    for elem in listofTuples:
+        #out_str = str(elem[0]) + " " + str(elem[1]) + "\n" + out_str
+        print(elem[0] , " ::" , elem[1] )
+
+    runBanList(warpl, banlist, enableBanlist)
+    runBanList(warpcountl, banlist, enableBanlist)
+
+    if randoType == "nl":
+        n_warpl = nologic(warpl)
+    elif randoType == "nld":
+        n_warpl = nologicdual(warpl)
+    elif randoType == "nll":
+        n_warpl = nologiclinked(warpl)
+    else:
+        raise ValueError("Error. "+randoType+" not found!")
+
+    print("#######################################################################")
+    print("#######################################################################")
+    print("#######################################################################")
+
+    for m, w in n_warpl.items():
+        if int(m.split(".zmb")[1]) == 0:
+            mapname = m.split(".zmb")[0][4:]
+            levelname = mapname[:-3]
+            print()
+            print(levelname + ": " + mapname)
+        print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + ": " + str(w))
+
+
+    print("Writing changes ...")
+
+    # Write new Warps to maplist
+    for mp in w_mapl:
+        mp_name = mp.getName()
+        print(mp_name + " ...")
+        for c in mp.children:
+            iden = c.getID()
+            filename = "zmb/" + mp_name + "_" + iden + ".zmb"
+            # print(filename)
+
+            try:
+                numofwarps = warpcountl[filename]
+            except KeyError:
+                numofwarps = 0
+            
+            warp_list = []
+
+            if not (numofwarps == 0):
+                for i in range(numofwarps):
+                    warp_list.append(n_warpl[filename+str(i)])
+                    
+                zmb = zds.ZMB( c.getData().getFileByName(filename) )
+                warph = zmb.get_child("WARP")
+                if not (warph == None):
+                    warph.randoReplace(warp_list)
+                    
+                c.getData().setFileByName(filename, zmb.save())
+
+
+        mp.save(outdir)
+        # input("Neat Break Point :)")
+
 
 def nologic(warpl):
     n_warpl = {}
@@ -161,7 +214,7 @@ def nologiclinked(warpl):
     return n_warpl
 
 
-def runBanList(thelist, banlist):
+def runBanList(thelist, banlist, enableBanlist):
     if enableBanlist:
         removeList = []
         for f, w in thelist.items():
@@ -172,60 +225,5 @@ def runBanList(thelist, banlist):
         for f in removeList:
             del thelist[f]
 
-runBanList(warpl, banlist)
-runBanList(warpcountl, banlist)
-
-if randoType == "nl":
-    n_warpl = nologic(warpl)
-elif randoType == "nld":
-    n_warpl = nologicdual(warpl)
-elif randoType == "nll":
-    n_warpl = nologiclinked(warpl)
-else:
-    raise ValueError("Error. "+randoType+" not found!")
-
-print("#######################################################################")
-print("#######################################################################")
-print("#######################################################################")
-
-for m, w in n_warpl.items():
-    if int(m.split(".zmb")[1]) == 0:
-        mapname = m.split(".zmb")[0][4:]
-        levelname = mapname[:-3]
-        print()
-        print(levelname + ": " + mapname)
-    print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + ": " + str(w))
-
-
-print("Writing changes ...")
-
-# Write new Warps to maplist
-for mp in w_mapl:
-    mp_name = mp.getName()
-    print(mp_name + " ...")
-    for c in mp.children:
-        iden = c.getID()
-        filename = "zmb/" + mp_name + "_" + iden + ".zmb"
-        # print(filename)
-
-        try:
-            numofwarps = warpcountl[filename]
-        except KeyError:
-            numofwarps = 0
-        
-        warp_list = []
-
-        if not (numofwarps == 0):
-            for i in range(numofwarps):
-                warp_list.append(n_warpl[filename+str(i)])
-                
-            zmb = zds.ZMB( c.getData().getFileByName(filename) )
-            warph = zmb.get_child("WARP")
-            if not (warph == None):
-                warph.randoReplace(warp_list)
-                
-            c.getData().setFileByName(filename, zmb.save())
-
-
-    mp.save(outdir)
-    # input("Neat Break Point :)")
+if __name__ == "__main__":
+    randomize(404, "../../DS/extracted/data/Map/", "../../DS/randomize/data/Map/")
