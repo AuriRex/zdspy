@@ -1,6 +1,6 @@
 # zdspy
 
-Project for a Python library for modifying files from **The Legend of Zelda: Phantom Hourglass**.
+A Python **library** for modifying files from **The Legend of Zelda: Phantom Hourglass**.
 
 **Status:** far from finished
 
@@ -19,8 +19,8 @@ Tutorial for not so tech-savvy here:
 https://github.com/AuriRex/zdspy/wiki/How-to-randomize
 
 Summary:
-* install Python 3
-* install ndspy -> `pip install ndspy`
+* install [Python 3](https://www.python.org/downloads/ "Python 3")
+* install [ndspy](https://github.com/RoadrunnerWMC/ndspy "ndspy") -> `pip install ndspy`
 * download this repository
 * run toolbox.py -> `python toolbox.py`
 
