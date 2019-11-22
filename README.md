@@ -22,7 +22,7 @@ Summary:
 * install [Python 3](https://www.python.org/downloads/ "Python 3")
 * install [ndspy](https://github.com/RoadrunnerWMC/ndspy "ndspy") -> `pip install ndspy`
 * download this repository
-* run toolbox.py -> `python toolbox.py`
+* run toolbox.py -> `python toolbox.py` and use option 1
 
 # Check the Wiki for more information!
 
