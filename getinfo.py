@@ -153,10 +153,13 @@ def main():
 
     warp_fade_type_list = {}
 
+    entrance_unknown1_list = {}
+    entrance_unknown1_file_list = {}
+
     obj_id_list = {}
 
     room_hex_list = {}
-    lighting_id_list = {}
+    environment_type_list = {}
     music_id_list = {}
 
     total_areas = 0
@@ -194,14 +197,26 @@ def main():
         if not (roomh == None):
             if str(roomh.data) not in room_hex_list:
                 room_hex_list[str(roomh.data[4:].hex())] = fname
-            if str(roomh.lighting_id) not in lighting_id_list:
-                lighting_id_list[str(roomh.lighting_id)] = 1
+            if str(roomh.environment_type) not in environment_type_list:
+                environment_type_list[str(roomh.environment_type)] = 1
             else:
-                lighting_id_list[str(roomh.lighting_id)] = lighting_id_list[str(roomh.lighting_id)] + 1
+                environment_type_list[str(roomh.environment_type)] = environment_type_list[str(roomh.environment_type)] + 1
             if str(roomh.music_id) not in music_id_list:
                 music_id_list[str(roomh.music_id)] = 1
             else:
                 music_id_list[str(roomh.music_id)] = music_id_list[str(roomh.music_id)] + 1
+        plyrh = zmb.get_child("PLYR")
+        if not (plyrh == None):
+            for c in plyrh.children:
+                if str(fname) not in entrance_unknown1_file_list:
+                    entrance_unknown1_file_list[str(fname)] = {}
+                else:
+                    if c.id not in entrance_unknown1_file_list[str(fname)]:
+                        entrance_unknown1_file_list[str(fname)][c.id] = str(c.unknown1)
+                if str(c.unknown1) not in entrance_unknown1_list:
+                    entrance_unknown1_list[str(c.unknown1)] = 1
+                else:
+                    entrance_unknown1_list[str(c.unknown1)] += 1
 
 
     #print(sorted(npc_type_list))
@@ -272,6 +287,26 @@ def main():
     for k, v in sorted(warp_fade_type_list.items()):
         total_warps = total_warps + v
 
+    out_str = ""
+    for k, v in sorted(entrance_unknown1_list.items()):
+        #print(k, v)
+        out_str = out_str + "\n" + str(k) + " " + str(v)
+    f = open(outdir + 'ph_plyr_unknown1_abc.txt', 'wt', encoding='utf-8')
+    f.write(out_str[1:])
+
+    out_str_complete = ""
+    for fname, npcr in entrance_unknown1_file_list.items():
+        # Create a list of tuples sorted by index 1 i.e. value field     
+        listofTuples = sorted(npcr.items() ,  key=lambda x: x[1])
+        out_str = ""
+        # Iterate over the sorted sequence
+        for elem in listofTuples :
+            out_str = "  " + str(elem[0]) + " " + str(elem[1]) + "\n" + out_str
+            # print(elem[0] , " ::" , elem[1] )
+        out_str_complete += fname + ":\n" + out_str
+    f = open(outdir + 'ph_plyr_unknown1_files_sbv.txt', 'wt', encoding='utf-8')
+    f.write(out_str_complete[:-1])
+
     #######################################################################################
     #               Object IDs
     #######################################################################################
@@ -302,27 +337,27 @@ def main():
     #               ROOM ZMB Header
     #######################################################################################
 
-    # lighting_id_list
+    # environment_type_list
     out_str = ""
-    for k, v in sorted(lighting_id_list.items()):
+    for k, v in sorted(environment_type_list.items()):
         #print(k, v)
         out_str = out_str + "\n" + str(k) + " " + str(v)
-    f = open(outdir + 'ph_lighting_id_list_abc.txt', 'wt', encoding='utf-8')
+    f = open(outdir + 'ph_environment_type_list_abc.txt', 'wt', encoding='utf-8')
     f.write(out_str[1:])
 
     # Create a list of tuples sorted by index 1 i.e. value field     
-    listofTuples = sorted(lighting_id_list.items() ,  key=lambda x: x[1])
+    listofTuples = sorted(environment_type_list.items() ,  key=lambda x: x[1])
     out_str = ""
     # Iterate over the sorted sequence
     for elem in listofTuples :
         out_str = str(elem[0]) + " " + str(elem[1]) + "\n" + out_str
         print(elem[0] , " ::" , elem[1] )
-    f = open(outdir + 'ph_lighting_id_list_sbv.txt', 'wt', encoding='utf-8')
+    f = open(outdir + 'ph_environment_type_list_sbv.txt', 'wt', encoding='utf-8')
     f.write(out_str[:-1])
 
-    total_lighting_ids = 0
-    for k, v in sorted(lighting_id_list.items()):
-        total_lighting_ids = total_lighting_ids + v
+    total_environment_types = 0
+    for k, v in sorted(environment_type_list.items()):
+        total_environment_types = total_environment_types + v
 
     # music_id_list
     out_str = ""
@@ -389,8 +424,8 @@ def main():
     print("Number of total NPCs: "+str(total_npcs))
     print("Number of unique NPCs: "+str(len(npc_type_list)))
     print("## ROOM Header Info ##")
-    print("Number of total lighting ids used: "+str(total_lighting_ids))
-    print("Number of unique lighting ids used: "+str(len(lighting_id_list)))
+    print("Number of total lighting ids used: "+str(total_environment_types))
+    print("Number of unique lighting ids used: "+str(len(environment_type_list)))
     print("Number of total music ids used: "+str(total_music_ids))
     print("Number of unique music ids used: "+str(len(music_id_list)))
     print("## Warp / Entrance Info ##")

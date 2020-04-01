@@ -48,7 +48,7 @@ class ZDS_GenericElementHeader(ABC):
         self.children_count = d.UInt16(data, 8)
         self.children = []
         self.padding = d.UInt16(data, 10)
-        self.pointer = 12
+        self.offset = 12
         if not self.padding == 65535:
             print("Padding with NON 0xFFFF Value: "+str(self.padding))
         self.init()
@@ -80,7 +80,7 @@ class ZDS_GenericFileHeader(ABC): # TODO
 
         self.children_count = d.UInt16(data, 14)
 
-        self.pointer = 16
+        self.offset = 16
         self.init()
 
     @abstractmethod

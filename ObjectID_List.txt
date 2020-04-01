@@ -20,7 +20,9 @@ Decimal:
     OBJID:10 XPos:45 YPos:8 HEX:00001900000000000100010100000000000000010000 [:68]  (dngn_flame_00.zmb) (Contains Red Rupee)
 
     HEX [
-        Byte 3 = Content ? {
+        Ninth Byte from left (#3 After ObjID + XPos + YPos) = Content {
+            
+            0 = Nothing! ("Nothing is here") (Testet with 0a000000211800004f000000000000000101000000000000ff010000)
             # Testet with Object: OBJID:10 XPos:38 YPos:33 HEX:00000100000000000000010100000000000000010000
             1 = Key
             2 = Green Rupee (1)
@@ -57,7 +59,158 @@ Decimal:
             30 = Blue Force Gem (Textbox: "NO MESSAGE" , No Force Gem in hands afterwards)
             31 = Hammer (No TB)
 
-            TODO: Continue at: (  0A 00 00 00 21 25 00 00 1F 00 00 00 00 00 00 00 01 01 00 00 00 00 00 00 00 01 00 00 0A 00 00 00 1F 25 00 00 1E 00 00 00 00 00 00 00 01 01 00 00 00 00 00 00 00 01 00 00  ) (dngn_flame 01)
+            (New Tested with Chest Data: 0a000000211800004f000000000000000101000000000000ff010000)
+
+            32 = Grappling Hook (No TB)
+            33 = Square Crystal
+            34 = Round Crystal
+            35 = Triangle Crystal
+            36 = Fishing Rod (No TB)
+            37 = Cannon
+            38 = Sun Key
+            39 = Key (Textbox: "NO MESSAGE")
+
+            40 = Quiver Upgrade
+            41 = Bomb Bag Upgrade
+            42 = Bombchu Bag Upgrade
+            43 = Treasure (Textbox = "You got the ship part")
+            44 = King's Key
+            45 = Power Gem
+            46 = Wisdom Gem
+            47 = Courage Gem
+
+            48 = Treasure (Pink Coral)
+            49 = Treasure (White Pearl Loop)
+            50 = Treasure (Dark Pearl Loop)
+            51 = Treasure (Zora Scale)
+            52 = Treasure (Goron Amber)
+            53 = Treasure (Ruto Crown)
+            54 = Treasure (Helmaroc Plume)
+            55 = Treasure (Regal Ring)
+
+            56 = Ghost Key
+            57 = Freebie Card
+            58 = Compliment Card
+            59 = Complimentary Card
+            60 = Regal Necklace (No TB)
+            61 = Boat Crane
+            62 = Hero's New Clothes
+            63 = Telescope
+
+            64 = guard notebook
+            65 = Jolene's Letter
+            66 = Prize Postcard
+            67 = Wood Heart
+            68 = Sword (No TB)
+            69 = Key ("You got the Phantom Sword ...")
+            70 = Key (No TB)
+            71 = Key (No TB)
+
+            72 = Key (No TB)
+            73 = Key (No TB)
+            74 = Key (No TB)
+            75 = Treasure Map (SWQ) [South West Quadrant] #TODO Match ID with WIKI
+            76 = Treasure Map (SWQ)
+            77 = Treasure Map (SWQ)
+            78 = Treasure Map (SWQ)
+            79 = Treasure Map (SWQ)
+
+            80 = Treasure Map (SWQ)
+            81 = Treasure Map (SWQ)
+            82 = Treasure Map (SWQ)
+            83 = Treasure Map (NWQ) [North West Quadrant]
+            84 = Treasure Map (NWQ)
+            85 = Treasure Map (NWQ)
+            86 = Treasure Map (NWQ)
+            87 = Treasure Map (NWQ)
+
+            88 = Treasure Map (NWQ)
+            89 = Treasure Map (NWQ)
+            90 = Treasure Map (NWQ)
+            91 = Treasure Map (SEQ) [South East Quadrant]
+            92 = Treasure Map (SEQ)
+            93 = Treasure Map (SEQ)
+            94 = Treasure Map (SEQ)
+            95 = Treasure Map (SEQ)
+
+            96 = Treasure Map (SEQ)
+            97 = Treasure Map (SEQ)
+            98 = Treasure Map (SEQ)
+            99 = Treasure Map (NEQ) [North East Quadrant]
+            100 = Treasure Map (NEQ)
+            101 = Treasure Map (NEQ)
+            102 = Treasure Map (NEQ)
+            103 = Treasure Map (NEQ)
+
+            104 = Treasure Map (NEQ)
+            105 = Treasure Map (NEQ)
+            106 = Treasure Map (NEQ)
+            107 = Nothing ?
+            108 = Nothing ?
+            109 = Nothing ?
+            110 = Nothing ?
+            111 = Nothing ?
+
+            112 = Nothing ?
+            113 = Swordsman Scroll
+            114 = Crimsonine
+            115 = Azurine
+            116 = Aquanine
+            117 = Red Potion
+            118 = Purple Potion
+            119 = Big Red Rupee (200)
+
+            120 = Sand of Hours (One Minute)
+            121 = Golden Chimney #TODO Check if golden chimney everytime
+            122 = Golden Handrail                                   
+            123 = Golden Cannon
+            124 = Golden Hull
+            125 = Ruto Crown
+            126 = Ship Part (Random) #TODO check if same everytime
+            127 = Stone Tablet / Slate
+
+            128 = Bait (No TB)
+            129 = Rupoor (10)
+            130 = Rupoor (50)
+            131 = Key ("You got some Sand of Hours (30 Seconds)")
+            132 = Key ("You got some Sand of Hours (10 Seconds)")
+            133 = Ship Part (Random)
+            134 = Goron Amber
+            135 = Ship Part (Random)
+
+            136 = Key (No TB)
+            137 = Key (No TB)
+            138 = Key (No TB)
+            139 = Key (No TB)
+            140 = Key (No TB)
+            141 = Key (No TB)
+            142 = Key (No TB)
+            143 = Key (No TB)
+
+            144 = Key (No TB)
+            145 = Key (No TB)
+            146 = Key (No TB)
+            147 = Key (No TB)
+            148 = Key (No TB)
+            149 = Key (No TB)
+            150 = Key (No TB)
+            151 = Key (No TB)
+
+            152 = Key (No TB)
+            153 = Key (No TB)
+            154 = Key (No TB)
+            155 = Key (No TB)
+            156 = Key (No TB)
+            157 = Key (No TB)
+            158 = Key (No TB)
+            159 = Key (No TB)
+
+            # TODO continue to 254
+
+            255 = Key (No TB)
+
+
+
         }
     ]
 

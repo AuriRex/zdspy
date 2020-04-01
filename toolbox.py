@@ -1,4 +1,5 @@
 from zdspy import rom_util
+from zdspy import dataio as d
 import os
 import randomize
 import random
@@ -79,6 +80,15 @@ elif choice == "1":
     print("Your randomizer type is: "+randoType)
     print("You can find your ROM here: \"" + os.path.abspath(rom_path[:-4]+"_"+randoType+"_randomized_"+str(seed)+".nds") + "\"")
 elif choice == "4":
-    print("test stuff:")
+    print("debug stuff:")
+    print("1 - compare files")
     r = input("> ")
-    print(os.path.abspath(r)+"/")
+    if r == "1":
+        f1 = input("File1> ")
+        f2 = input("File2> ")
+        b_f1 = d.ReadFile(f1)
+        b_f2 = d.ReadFile(f2)
+        if b_f1 == b_f2:
+            print("Same files!")
+        else:
+            print("Different files!")

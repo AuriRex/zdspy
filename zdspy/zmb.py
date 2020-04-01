@@ -9,7 +9,7 @@ from . import gheader as gh
 class ZMB_WARP(gh.ZDS_GenericElementHeader):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
         # print(data.hex())
         print("Children: "+str(self.children_count))
         self.child_size = 24
@@ -25,18 +25,18 @@ class ZMB_WARP(gh.ZDS_GenericElementHeader):
                 self.deny_save = True
                 # self.children_count = self.calc_cs
 
-        for i in range(self.children_count):
-            self.children.append( ZMB_WARP_CE.fromBinary( self.data[self.pointer:self.pointer+self.child_size]) )
-            self.pointer = self.pointer + self.child_size
+        for _ in range(self.children_count):
+            self.children.append( ZMB_WARP_CE.fromBinary( self.data[self.offset:self.offset+self.child_size]) )
+            self.offset = self.offset + self.child_size
 
-    def addWarp(fade_type, map_id, destination_warp_id, str16_destination, run_direction):
+    def addWarp(self, fade_type, map_id, destination_warp_id, str16_destination, run_direction):
         largest_uid = 0
         for c in self.children:
             if c.UID >= largest_uid:
                 largest_uid = c.UID + 1
 
         print("Added Warp:")
-        self.children.append( ZMB_WARP_CE( largest_uid, map_id, destination_warp_id, str16_destination, run_direction ) )
+        self.children.append( ZMB_WARP_CE( largest_uid, fade_type, map_id, destination_warp_id, str16_destination, run_direction ) )
 
     def randoReplace(self, warp_list):
         self.children = warp_list
@@ -121,7 +121,7 @@ class ZMB_WARP_CE:
 class ZMB_MPOB(gh.ZDS_GenericElementHeader):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
         print("Children: "+str(self.children_count))
 
         
@@ -136,8 +136,20 @@ class ZMB_MPOB(gh.ZDS_GenericElementHeader):
                 self.children_count = self.calc_cs
 
         for i in range(self.children_count):
-            self.children.append( ZMB_MPOB_CE(self.data[self.pointer:self.pointer+self.child_size], i) )
-            self.pointer = self.pointer + self.child_size
+            self.children.append( ZMB_MPOB_CE(self.data[self.offset:self.offset+self.child_size], i) )
+            self.offset = self.offset + self.child_size
+
+    def addObject(self, objid, posx, posy, rdata):
+        buffer = bytearray(28)
+
+        buffer = d.w_UInt32(buffer, 0, objid)
+        buffer = d.w_UInt8(buffer, 4, posx)
+        buffer = d.w_UInt8(buffer, 5, posy)
+
+        buffer[6:] = bytearray.fromhex(rdata)
+
+        self.children.append(ZMB_MPOB_CE(buffer ,-1))
+        # OBJID:10 XPos:30 YPos:25 HEX:
 
     def calculate_size(self):
         self.size = 12 + self.child_size * len(self.children)
@@ -164,8 +176,13 @@ class ZMB_MPOB_CE:
         self.position_x = d.UInt8(self.data, 4)
         self.position_y = d.UInt8(self.data, 5)
 
-        print("OBJID:"+str(self.mapobjectid) + " XPos:"+str(self.position_x)+ " YPos:"+str(self.position_y)+ " HEX:" + str(self.data[6:].hex()) + " [:"+str(num)+"] ")
+        self.rotation = d.SInt16(self.data, 6)
+
+        print("OBJID:"+str(self.mapobjectid) + " XPos:"+str(self.position_x)+ " YPos:"+str(self.position_y)+ " HEX:" + str(self.data[8:].hex()) + " [:"+str(num)+"] ")
     
+    def __str__(self):
+        return "OBJID:"+str(self.mapobjectid) + " XPos:"+str(self.position_x)+ " YPos:"+str(self.position_y)+ " HEX:" + str(self.data.hex())
+
     def save(self):
         buffer = self.data
 
@@ -179,7 +196,7 @@ class ZMB_MPOB_CE:
 class ZMB_NPCA(gh.ZDS_GenericElementHeader):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
         print("Children: "+str(self.children_count))
 
         self.child_size = 32
@@ -194,14 +211,16 @@ class ZMB_NPCA(gh.ZDS_GenericElementHeader):
                 # self.children_count = self.calc_cs
 
         for i in range(self.children_count):
-            self.children.append( ZMB_NPCA_CE(self.data[self.pointer:self.pointer+self.child_size], i) )
-            self.pointer = self.pointer + self.child_size
+            self.children.append( ZMB_NPCA_CE(self.data[self.offset:self.offset+self.child_size], i) )
+            self.offset = self.offset + self.child_size
 
     def addNPCRaw(self, data):
         if len(data) != self.child_size:
             print("[NPCA] Could not create new NPC")
-            return
-        self.children.append( ZMB_NPCA_CE(data, -1))
+            return None
+        new_npc = ZMB_NPCA_CE(data, -1)
+        self.children.append( new_npc)
+        return new_npc
 
     def addNPC(self, npctype, xpos, ypos, link, data): # TODO Unique fields as inputs
         new_data = bytearray(self.child_size)
@@ -222,7 +241,7 @@ class ZMB_NPCA(gh.ZDS_GenericElementHeader):
 
     def save(self):
         if self.deny_save == True:
-            print("[NPCA] can not save corrupted header!")
+            print("[NPCA] can not save corrupted section!")
             return bytearray(0)
         hs = 12
         buffer = bytearray(hs)
@@ -243,10 +262,17 @@ class ZMB_NPCA_CE:
         self.data = data
         self.npctype = d.Decode(self.data[:4])
 
-        self.position_x = d.UInt16(self.data, 4)
-        self.position_y = d.UInt16(self.data, 6)
+        self.position_x = d.SFix(self.data, 4, n_bits=16, n_bits_int=12)
+        self.position_y = d.SFix(self.data, 6, n_bits=16, n_bits_int=12)
+        self.position_z = d.SInt16(self.data, 8)
 
-        self.rotation = d.UInt8(self.data, 8)
+        self.rotation = d.SInt16(self.data, 10)
+
+        # print(str(len(self.data)) + ": " + self.data.hex())
+        if len(self.data) < 0x1C:
+            self.bmg_script_id = 0
+        else:
+            self.bmg_script_id = d.UInt32(self.data, 0x18)
 
         print("NPCID:"+str(self.npctype) + " HEX:" + str(self.data[4:].hex()) + " [:"+str(num)+"] ")
 
@@ -254,24 +280,30 @@ class ZMB_NPCA_CE:
         buffer = bytearray(self.data)
 
         buffer[:4] = d.Encode(self.npctype)
-        buffer = d.w_UInt16(buffer, 4, self.position_x)
-        buffer = d.w_UInt16(buffer, 6, self.position_y)
+        buffer = d.w_SFix(buffer, 4, self.position_x, n_bits=16, n_bits_int=12)
+        buffer = d.w_SFix(buffer, 6, self.position_y, n_bits=16, n_bits_int=12)
+        buffer = d.w_SInt16(buffer, 8, self.position_z)
 
-        buffer = d.w_UInt8(buffer, 8, self.rotation)
+        buffer = d.w_SInt16(buffer, 10, self.rotation)
+
+        buffer = d.w_UInt32(buffer, 0x18, self.bmg_script_id)
 
         return buffer
 
 class ZMB_ROOM(gh.ZDS_GenericElementHeaderRaw):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
 
-        self.lighting_id = d.UInt16(self.data, 8)
-        self.unknwn1 = d.UInt8(self.data, 10) # Always 0x4
-        self.unknwn2 = d.UInt8(self.data, 11) # Always 0x3
+        self.unknown1 = d.UInt8(self.data, 8) # Do Not Touch -> does funky stuff with skybox, music, light and npc Z-Position
+        # unknown1 may have something to do with terrys shop
+        self.environment_type = d.UInt8(self.data, 9) # = Skybox Color & Mist / Fog effects & Object Coloring
+        self.unknown2 = d.UInt8(self.data, 10) # Always 0x04
+        self.unknown3 = d.UInt8(self.data, 11) # Always 0x03
         self.music_id = d.UInt8(self.data, 12)
+        self.lighting_type = d.UInt8(self.data, 13)
 
-        print("LightingID:"+str(self.lighting_id)+" UNKNWN1:"+str(self.unknwn1)+" UNKNWN2:"+str(self.unknwn2)+" MUSICID:"+str(self.music_id)+ " HEX:"+str(self.data[13:].hex()))
+        print("EnvType:"+str(self.environment_type)+" UNKNWN1:"+str(self.unknown1)+" UNKNWN2:"+str(self.unknown2)+" MUSICID:"+str(self.music_id)+ " HEX:"+str(self.data[13:].hex()))
 
     def calculate_size(self):
         self.size = len(self.data)
@@ -280,23 +312,25 @@ class ZMB_ROOM(gh.ZDS_GenericElementHeaderRaw):
     def save(self):
         buffer = self.data
 
-        buffer = d.w_UInt8(buffer, 8 , self.lighting_id)
-        buffer = d.w_UInt8(buffer, 10 , self.unknwn1)
-        buffer = d.w_UInt8(buffer, 11 , self.unknwn2)
+        buffer = d.w_UInt8(buffer, 8 , self.unknown1)
+        buffer = d.w_UInt8(buffer, 9 , self.environment_type)
+        buffer = d.w_UInt8(buffer, 10 , self.unknown2)
+        buffer = d.w_UInt8(buffer, 11 , self.unknown3)
         buffer = d.w_UInt8(buffer, 12 , self.music_id)
+        buffer = d.w_UInt8(buffer, 13 , self.lighting_type)
 
         return buffer
 
 class ZMB_ARAB(gh.ZDS_GenericElementHeader):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
         print("Children: "+str(self.children_count))
 
         self.child_size = 12
         for i in range(self.children_count):
-            self.children.append( ZMB_ARAB_CE(self.data[self.pointer:self.pointer+self.child_size], i) )
-            self.pointer = self.pointer + self.child_size
+            self.children.append( ZMB_ARAB_CE(self.data[self.offset:self.offset+self.child_size], i) )
+            self.offset = self.offset + self.child_size
 
     def calculate_size(self):
         self.size = 12 + self.child_size * len(self.children)
@@ -320,15 +354,42 @@ class ZMB_ARAB_CE:
     def __init__(self, data, num):
         self.data = data
 
+        self.id = d.UInt8(self.data, 0)
+        self.unknown1 = d.UInt8(self.data, 1)
+
+        self.unknown2 = d.SInt16(self.data, 2)
+
+        self.position_y = d.SInt16(self.data, 4)
+        self.position_x = d.SInt16(self.data, 6)
+        if len(self.data) < 10:
+            self.position_y_secondary = 0
+            self.position_x_secondary = 0
+        else:
+            self.position_y_secondary = d.SInt16(self.data, 8)
+            self.position_x_secondary = d.SInt16(self.data, 10)
+
         print("ARAB_CE:"+" HEX:" + str(self.data.hex()) + " [:"+str(num)+"] ")
 
     def save(self):
-        return self.data
+        hs = 12
+        buffer = bytearray(hs)
+
+        buffer = d.w_UInt8(buffer, 0, self.id)
+        buffer = d.w_UInt8(buffer, 1, self.unknown1)
+
+        buffer = d.w_SInt16(buffer, 2, self.unknown2)
+
+        buffer = d.w_SInt16(buffer, 4, self.position_y)
+        buffer = d.w_SInt16(buffer, 6, self.position_x)
+        buffer = d.w_SInt16(buffer, 8, self.position_y_secondary)
+        buffer = d.w_SInt16(buffer, 10, self.position_x_secondary)
+
+        return buffer
 
 class ZMB_PLYR(gh.ZDS_GenericElementHeaderRaw):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
 
         
         self.children_count = d.UInt16(self.data, 8)
@@ -337,12 +398,12 @@ class ZMB_PLYR(gh.ZDS_GenericElementHeaderRaw):
 
         self.unknwn1 = d.UInt8(self.data, 10)
         self.unknwn2 = d.UInt8(self.data, 11)
-        self.pointer = 12
+        self.offset = 12
 
         self.child_size = 16
         for i in range(self.children_count):
-            self.children.append( ZMB_PLYR_CE(self.data[self.pointer:self.pointer+self.child_size], i) )
-            self.pointer = self.pointer + self.child_size
+            self.children.append( ZMB_PLYR_CE(self.data[self.offset:self.offset+self.child_size], i) )
+            self.offset = self.offset + self.child_size
         #print("LightingID:"+str(self.lighting_id)+" UNKNWN1:"+str(self.unknwn1)+" UNKNWN2:"+str(self.unknwn2)+" MUSICID:"+str(self.music_id)+ " HEX:"+str(self.data[13:].hex()))
 
     def calculate_size(self):
@@ -369,29 +430,51 @@ class ZMB_PLYR_CE:
     def __init__(self, data, num):
         self.data = data
 
-        print("PLYR_CE:"+" HEX:" + str(self.data.hex()) + " [:"+str(num)+"] ")
+        self.position_x = d.SFix32_16(self.data, 0)
+        self.position_z = d.SFix32_16(self.data, 4)
+        self.position_y = d.SFix32_16(self.data, 8)
+        self.rotation = d.SInt16(self.data, 0xC)
+
+        self.id = d.UInt8(self.data, 0xE)
+        self.unknown1 = d.UInt8(self.data, 0xF)
+
+        print(self)
+        # print("PLYR_CE:"+" HEX:" + str(self.data.hex()) + " [:"+str(num)+"] ")
 
     def save(self):
-        return self.data
+        hs = 0x10
+        buffer = bytearray(hs)
+        buffer = d.w_SFix32_16(buffer, 0, self.position_x) # X
+        buffer = d.w_SFix32_16(buffer, 4, self.position_z) # Z
+        buffer = d.w_SFix32_16(buffer, 8, self.position_y) # Y
+        buffer = d.w_SInt16(buffer, 0xC, self.rotation) # Rotation
+
+        buffer = d.w_UInt8(buffer, 0xE, self.id) # ID
+        buffer = d.w_UInt8(buffer, 0xF, self.unknown1) # Unknown1
+
+        return buffer
+
+    def __str__(self):
+        return "<ZMB_PLYR_CE ID:"+str(self.id)+" X:" + str(self.position_x) + " Y:" + str(self.position_y) + " Z:" + str(self.position_z) + " Rot:" + str(self.rotation) + " Unknown1:" + str(self.unknown1) + ">"
 
 class ZMB_CAME(gh.ZDS_GenericElementHeaderRaw):
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
         if len(self.data) > 12:
-            print("[CAMERA] HEADER HAS DATA! WOOOOH!")
+            print("[CAMERA] SECTION HAS DATA! WOOOOH!")
 
         self.children_count = d.UInt16(self.data, 8)
 
         self.child_size = 28
 
-        self.pointer = 12
+        self.offset = 12
 
         self.children = []
 
-        for i in range(self.children_count):
-            self.children.append( ZMB_CAME_CE( self.data[ self.pointer : self.pointer + self.child_size ] ) )
-            self.pointer += self.child_size
+        for _ in range(self.children_count):
+            self.children.append( ZMB_CAME_CE( self.data[ self.offset : self.offset + self.child_size ] ) )
+            self.offset += self.child_size
 
     def calculate_size(self):
         self.size = 12 + (len(self.children) * 28)
@@ -420,50 +503,102 @@ class ZMB_CAME_CE(gh.ZDS_GenericElementHeaderIDO):
 class ZMB_RALB(gh.ZDS_GenericElementHeader): # Seems to Contain Movement Paths (Phantoms)
 
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
         print("Children: "+str(self.children_count))
 
-    def calculate_size(self): # TEMPORARAY ! 
-        return len(self.data)
+        self.child_size = 12
+
+        self.total_node_count = int( (len(self.data)-12) / 12) - self.child_size
+
+        self.offset = 12
+
+        self.children = []
+
+        for i in range(self.children_count):
+            path_end_offset = d.UInt8(self.data, self.offset+1)*self.child_size + 12
+            self.children.append( ZMB_RALB_PATH( self.data[ self.offset : self.offset + path_end_offset ] , i) )
+            self.offset += path_end_offset
+
+    def calculate_size(self):
+        size = 0
+        for child in self.children:
+            size += child.number_of_nodes * 12 + 12
+        size += 12
+        self.size = size
+        return self.size
 
     def save(self):
-        return self.data # TODO FIX The Children Issue
-    #     self.child_size = 102
-    #     for i in range(self.children_count):
-    #         self.children.append( ZMB_RALB_CE(self.data[self.pointer:self.pointer+self.child_size], i) )
-    #         self.pointer = self.pointer + self.child_size
+        hs = 12
+        buffer = bytearray(hs)
 
-    # def calculate_size(self):
-    #     self.size = 12 + self.child_size * len(self.children)
-    #     return self.size
+        buffer[:4] = bytearray.fromhex("424c4152") # BLAR
 
-    # def save(self):
-    #     hs = 12
-    #     buffer = bytearray(hs)
-    #     buffer[:4] = bytearray.fromhex("424c4152") # BLAR
-    #     buffer = d.w_UInt32(buffer, 4, self.calculate_size()) # Size
-    #     buffer = d.w_UInt16(buffer, 8, len(self.children)) # Children Count #1
-    #     buffer = d.w_UInt16(buffer, 10, 65535) # Write 0xFFFF
+        buffer = d.w_UInt16(buffer, 8, len(self.children))
 
-    #     for child in self.children:
-    #         buffer = buffer + child.save()
+        buffer[10:12] = bytearray.fromhex("FFFF")
 
-    #     return buffer
+        for child in self.children:
+            buffer += child.save()
 
-class ZMB_RALB_CE:
+        buffer = d.w_UInt32(buffer, 4, len(buffer))
 
+        return buffer
+
+class ZMB_RALB_PATH:
+
+    def __init__(self, data, num):
+        self.data = data[12:]
+
+        self.head = data[:12]
+
+        self.nodes = []
+
+        self.node_size = 12
+
+        self.number_of_nodes = d.UInt8(self.head, 1)
+        self.number_of_nodes_calculated = int( len(self.data) / self.node_size )
+
+        if not self.number_of_nodes == self.number_of_nodes_calculated:
+            print("Warning! Number of Nodes missmatch between read and calculated!")
+
+        self.offset = 0
+
+        print("RALB_PATH:"+" HEX:" + str(self.head.hex()) + " [:"+str(num)+"] #Nodes:" + str(self.number_of_nodes) + " #NodesCalc:" + str(self.number_of_nodes_calculated))
+
+        for i in range(self.number_of_nodes):
+            self.nodes.append( ZMB_RALB_NODE( self.data[self.offset : self.offset + self.node_size] , i) )
+            self.offset += self.node_size
+
+
+    def save(self):
+        buffer = self.head
+
+        for node in self.nodes:
+            buffer += node.save()
+
+        return buffer
+
+class ZMB_RALB_NODE: # TODO
     def __init__(self, data, num):
         self.data = data
 
-        print("RALB_CE:"+" HEX:" + str(self.data.hex()) + " [:"+str(num)+"] ")
+        self.position_x = d.SFix(self.data, 0, 16, 12)
+        self.position_y = d.SFix(self.data, 2, 16, 12)
+
+        print(" RALB_NODE:"+" PosX:"+str(self.position_x)+" PosY:"+str(self.position_y)+" HEX:" + str(self.data[4:].hex()) + " [:"+str(num)+"] ")
 
     def save(self):
-        return self.data
+        hs = 12
+        buffer = self.data
+        buffer = d.w_SFix(buffer, 0, self.position_x, 16, 12) # PosX
+        buffer = d.w_SFix(buffer, 2, self.position_y, 16, 12) # PosY
+
+        return buffer
 
 class ZMB_ROMB(gh.ZDS_GenericElementHeaderRaw): # TODO Investigate!
     # Read Only Memory Binary ???
     def init(self):
-        print("Loading Element: " + self.identification)
+        print("Loading Section: " + self.identification)
 
         self.unknwn1 = d.UInt16(self.data, 8)
         self.unknwn2 = d.UInt16(self.data, 10)
@@ -490,18 +625,18 @@ class ZMB:
         self.unknown1 = self.data[16:32]
         print("Unknown1: "+ str(self.unknown1.hex()))
 
-        self.pointer = 32
+        self.offset = 32
 
         self.children_count = d.UInt32(self.data, 12)
         self.children = []
 
-        for i in range(self.children_count):
-            # print("Pointer:",self.pointer,"HEX:",self.data[self.pointer:].hex())
-            if self.pointer >= len(self.data):
+        for _ in range(self.children_count):
+            # print("Pointer:",self.offset,"HEX:",self.data[self.offset:].hex())
+            if self.offset >= len(self.data):
                 raise Exception('Not enough children in file and EOF reached. The children count must be {} but it was: {}'.format(self.children_count, len(self.children)))
-            self.tmp = d.UInt32(self.data, self.pointer + 4)
-            gen = gh.NDS_GenericTempContainer(self.data[self.pointer:self.pointer+self.tmp])
-            self.pointer = self.pointer+self.tmp
+            self.tmp = d.UInt32(self.data, self.offset + 4)
+            gen = gh.NDS_GenericTempContainer(self.data[self.offset:self.offset+self.tmp])
+            self.offset = self.offset+self.tmp
             print(gen.identification + " Size: "+str(gen.size))
             if gen.identification == "DUMMY":
                 pass
@@ -527,24 +662,24 @@ class ZMB:
                 print("TODO! #############################################################################################")
                 self.children.append( gen )
 
-
-    npctypes = { # TODO Add More NPC Types
-        "Corpse": "53505243", # Corpse / Skelleton | CRPS
-        "Spikeroller": "4C525053", # Rolling Spikes | LRPS
-        "Navimessage": "47534D4E", # Message that Ceila says? | GMSN | ExNPC: 47534D4ED401B40100FF00000000000000000000010100007100780000010000  |  ( copied a corpse switched npc type to this and ceila said its text upon entering the room )
-        "Camerahighlight": "52415441", # Camera Highlight | RATA | Camera scrolls to location of npc and back to link
-        "CHOB": "424F4843", # Something todo with Paths ? | BOHC
-        "Bluephantom": "52534843", # Blue Phantom / Chaser? | RSHC
-        "SWOB": "424F5753", # Unknown | BOWS
-        "Redphantom": "32534843", # Red Phantom | CHS2
-        "ITGE": "45475449", # Unknown3
-    }
+        self.npctypes = { # TODO Add More NPC Types and/or remove/relocate this
+            "Corpse": "53505243", # Corpse / Skelleton | CRPS
+            "Spikeroller": "4C525053", # Rolling Spikes | LRPS
+            "Navimessage": "47534D4E", # Message that Ceila says? | GMSN | ExNPC: 47534D4ED401B40100FF00000000000000000000010100007100780000010000  |  ( copied a corpse switched npc type to this and ceila said its text upon entering the room )
+            "Camerahighlight": "52415441", # Camera Highlight | RATA | Camera scrolls to location of npc and back to link
+            "CHOB": "424F4843", # Something todo with Paths ? | BOHC
+            "Bluephantom": "52534843", # Blue Phantom / Chaser? | RSHC
+            "SWOB": "424F5753", # Unknown | BOWS
+            "Redphantom": "32534843", # Red Phantom | CHS2
+            "ITGE": "45475449", # Unknown3
+        }
 
     def getNPCType(self, type):
-        if type in npctypes:
-            return npctypes[type]
+        if type in self.npctypes:
+            return self.npctypes[type]
 
         print("NPC Type not found: \"" + type + "\"")
+        raise ValueError("NPC Type not found: \"" + type + "\"")
 
 
     def get_child(self, child_idnetification):

@@ -52,16 +52,16 @@ class ZOB_CE:
 
         # temp code
         self._16_0 = d.UInt16(self.data, 0)
-        self._s16_0 = d.Int16(self.data, 0)
+        self._s16_0 = d.SInt16(self.data, 0)
 
         self._16_2 = d.UInt16(self.data, 2)
-        self._s16_2 = d.Int16(self.data, 2)
+        self._s16_2 = d.SInt16(self.data, 2)
 
         self._8_0 = d.UInt16(self.data, 0)
-        self._s8_0 = d.Int16(self.data, 0)
+        self._s8_0 = d.SInt16(self.data, 0)
 
         self._8_1 = d.UInt8(self.data, 1)
-        self._s8_1 = d.Int8(self.data, 1)
+        self._s8_1 = d.SInt8(self.data, 1)
 
     def __str__(self):
         return str(self._16_0) + " - " + str(self._s16_2)
