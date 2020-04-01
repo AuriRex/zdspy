@@ -3,6 +3,10 @@ infodump/*.zip
 infodump/map2d/
 infodump/st_map2d/
 extracted/
+infodump/
+
+# VSCode Workspace Settings
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
