@@ -508,21 +508,21 @@ class ZMB_RALB(gh.ZDS_GenericElementHeader): # Seems to Contain Movement Paths (
 
         self.child_size = 12
 
-        self.total_node_count = int( (len(self.data)-12) / 12) - self.child_size
+        self.node_size = 12
 
         self.offset = 12
 
         self.children = []
 
         for i in range(self.children_count):
-            path_end_offset = d.UInt8(self.data, self.offset+1)*self.child_size + 12
-            self.children.append( ZMB_RALB_PATH( self.data[ self.offset : self.offset + path_end_offset ] , i) )
+            path_end_offset = d.UInt8(self.data, self.offset+1) * self.node_size + self.child_size
+            self.children.append( ZMB_RALB_PATH( self.data[ self.offset : self.offset + path_end_offset ] , i, self.node_size) )
             self.offset += path_end_offset
 
     def calculate_size(self):
         size = 0
         for child in self.children:
-            size += child.number_of_nodes * 12 + 12
+            size += child.number_of_nodes * child.node_size + self.child_size
         size += 12
         self.size = size
         return self.size
@@ -546,14 +546,16 @@ class ZMB_RALB(gh.ZDS_GenericElementHeader): # Seems to Contain Movement Paths (
 
 class ZMB_RALB_PATH:
 
-    def __init__(self, data, num):
+    def __init__(self, data, num, node_size):
         self.data = data[12:]
 
         self.head = data[:12]
 
+        self.index = d.UInt8(self.head, 0)
+
         self.nodes = []
 
-        self.node_size = 12
+        self.node_size = node_size
 
         self.number_of_nodes = d.UInt8(self.head, 1)
         self.number_of_nodes_calculated = int( len(self.data) / self.node_size )
