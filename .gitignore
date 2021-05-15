@@ -16,6 +16,9 @@ __pycache__/
 # C extensions
 *.so
 
+# NDS roms
+*.nds
+
 # Distribution / packaging
 .Python
 build/
