@@ -7,11 +7,17 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
 
     random.seed( seed )
 
+    error_log = []
+
     banlist = ["battle00","battle01","battle02","battle03","battle04","battle05","battle06","battle07","battle08","battle09","battle10","battle11","player_dngn","demo_op","demo_chase","demo_end","demo_title"]
 
     # Beta maps:
     banlist.append("isle_first")
     banlist.append("isle_ice")
+
+    # Horrible things
+    banlist.append("sea_salvage")
+    banlist.append("sea_fishing")
 
     # Types:
     #   nl -> no logic
@@ -57,23 +63,26 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
                         print(wrp)
                         warpl[filename+str(i)] = wrp
             except Exception as err:
-                print(err, " | ", filename)
+                if not (mp_name in banlist):
+                    banlist.append(mp_name)
+                # print(err, " | ", filename)
+                error_log.append(str(err.args[0]) + " | " + filename)
 
     # Saved for later:
     # random_item = random.choice(list)
 
-    print(zmbl)
+    # print(zmbl)
 
-    print(warpl)
+    # print(warpl)
 
 
-    for m, w in warpl.items():
-        if int(m.split(".zmb")[1]) == 0:
-            mapname = m.split(".zmb")[0][4:]
-            levelname = mapname[:-3]
-            print()
-            print(levelname + ": " + mapname)
-        print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + ": " + str(w))
+    # for m, w in warpl.items():
+    #     if int(m.split(".zmb")[1]) == 0:
+    #         mapname = m.split(".zmb")[0][4:]
+    #         levelname = mapname[:-3]
+    #         print()
+    #         print(levelname + ": " + mapname)
+    #     print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + " --- " + str(w))
 
     # print(warpcountl)
 
@@ -131,7 +140,7 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
                 for i in range(numofwarps):
                     warp_list.append(n_warpl[filename+str(i)])
                     
-                zmb = zds.ZMB( c.getData().getFileByName(filename) )
+                zmb = zmbl[filename]
                 warph = zmb.get_child("WARP")
                 if not (warph == None):
                     warph.randoReplace(warp_list)
@@ -141,6 +150,15 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
 
         mp.save(outdir)
         # input("Neat Break Point :)")
+
+    error_path = os.path.join(outdir, "../", "RANDOMIZER_ERROR_LOG.txt")
+    print("Writing Errors to file ... (" + error_path + ")")
+    err_string = ""
+    for err in error_log:
+        err_string += err + "\n"
+
+    with open(error_path, 'wt', encoding='utf-8') as f:
+        f.write(err_string[:-1])
 
 
 def nologic(warpl):
@@ -226,7 +244,8 @@ def runBanList(thelist, banlist, enableBanlist):
                     print("[Banlist] Removing \""+f+"\"")
                     removeList.append(f)
         for f in removeList:
-            del thelist[f]
+            if f in thelist:
+                del thelist[f]
 
 if __name__ == "__main__":
     randomize(404, "../../DS/extracted/data/Map/", "../../DS/randomize/data/Map/")

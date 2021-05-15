@@ -77,8 +77,8 @@ class ZMB_WARP_CE:
         self.destination = dest
         self.run_direction = rundir
 
-        print("WUID:"+str(self.UID)+ " FadeType:"+str(self.fade_type)+ " MapID:"+str(self.map_id)+ " DestWUID-1:"+str(self.destination_warp_id) + " WDest:"+self.destination + " RunDir(Rotation):"+str(self.run_direction))
-
+        print(self)
+       
     @classmethod
     def fromBinary(cls, data: bytearray) -> type("ZMB_WARP_CE"):
         UID = d.UInt8(data, 0)
@@ -95,9 +95,7 @@ class ZMB_WARP_CE:
         else:
             run_direction = d.UInt32(data, 20)
 
-        print("WUID:"+str(UID)+ " FadeType:"+str(fade_type)+ " MapID:"+str(map_id)+ " DestWUID-1:"+str(destination_warp_id) + " WDest:"+destination + " RunDir(Rotation):"+str(run_direction))
-
-        return cls(UID, fade_type, map_id, destination_warp_id, destination, run_direction)
+        return ZMB_WARP_CE(UID, fade_type, map_id, destination_warp_id, destination, run_direction)
 
     def cleanDestination(self) -> str:
         out = ""
@@ -802,16 +800,12 @@ class ZMB:
         raise ValueError("NPC Type not found: \"" + type + "\"")
 
 
-    def get_child(self, child_idnetification):
-        try:
-            for child in self.children:
-                if child.identification == child_idnetification:
-                    return child
-        except AttributeError:
-            print("[ZMB] get_child() -> Attribute 'self.children' does not exist!")
-            return None
+    def get_child(self, child_identification):
+        for child in self.children:
+            if child.identification == child_identification:
+                return child
 
-        print("[ZMB] Child not found: \"" + child_idnetification + "\"")
+        raise ValueError("[ZMB] Child not found: \"" + child_identification + "\"")
 
     def calculate_size(self) -> int:
         tmp_size = 32
