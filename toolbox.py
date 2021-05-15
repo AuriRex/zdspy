@@ -88,7 +88,7 @@ elif choice == "1":
     print("Your seed is: "+str(seed))
     print("Your randomizer type is: "+randoType)
     print("You can find your ROM here: \"" + os.path.abspath(rom_path[:-4]+"_"+randoType+"_randomized_"+str(seed)+".nds") + "\"")
-elif choice == "4":
+elif choice == "0":
     print("debug stuff:")
     print("1 - compare files")
     r = input("> ")
