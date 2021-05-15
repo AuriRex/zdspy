@@ -486,6 +486,7 @@ class ZMB_PLYR(gh.ZDS_GenericElementHeaderRaw):
 
 class ZMB_PLYR_CE:
     data: bytearray
+    entrance_id: int = 0
     position_x: float = 0.0
     position_y: float = 0.0
     position_z: float = 0.0
@@ -498,12 +499,15 @@ class ZMB_PLYR_CE:
     def __init__(self, data, num):
         self.data = data
 
-        self.position_x = d.SFix32_16(self.data, 0)
-        self.position_z = d.SFix32_16(self.data, 4)
-        self.position_y = d.SFix32_16(self.data, 8)
+        # self.position_x = d.SFix32_16(self.data, 0)
+        # self.position_z = d.SFix32_16(self.data, 4)
+        # self.position_y = d.SFix32_16(self.data, 8)
+        self.position_x = d.SFix(self.data, 0)
+        self.position_z = d.SFix(self.data, 4)
+        self.position_y = d.SFix(self.data, 8)
         self.rotation = d.SInt16(self.data, 0xC)
 
-        self.id = d.UInt8(self.data, 0xE)
+        self.entrance_id = d.UInt8(self.data, 0xE)
         self.unknown1 = d.UInt8(self.data, 0xF)
 
         print(self)
@@ -511,18 +515,21 @@ class ZMB_PLYR_CE:
 
     def save(self) -> bytearray:
         buffer = bytearray(self.header_size)
-        buffer = d.w_SFix32_16(buffer, 0, self.position_x) # X
-        buffer = d.w_SFix32_16(buffer, 4, self.position_z) # Z
-        buffer = d.w_SFix32_16(buffer, 8, self.position_y) # Y
+        # buffer = d.w_SFix32_16(buffer, 0, self.position_x) # X
+        # buffer = d.w_SFix32_16(buffer, 4, self.position_z) # Z
+        # buffer = d.w_SFix32_16(buffer, 8, self.position_y) # Y
+        buffer = d.w_SFix(buffer, 0, self.position_x) # X
+        buffer = d.w_SFix(buffer, 4, self.position_z) # Z
+        buffer = d.w_SFix(buffer, 8, self.position_y) # Y
         buffer = d.w_SInt16(buffer, 0xC, self.rotation) # Rotation
 
-        buffer = d.w_UInt8(buffer, 0xE, self.id) # ID
+        buffer = d.w_UInt8(buffer, 0xE, self.entrance_id) # ID
         buffer = d.w_UInt8(buffer, 0xF, self.unknown1) # Unknown1
 
         return buffer
 
     def __str__(self) -> str:
-        return "<ZMB_PLYR_CE ID:"+str(self.id)+" X:" + str(self.position_x) + " Y:" + str(self.position_y) + " Z:" + str(self.position_z) + " Rot:" + str(self.rotation) + " Unknown1:" + str(self.unknown1) + ">"
+        return "<ZMB_PLYR_CE ID:"+str(self.entrance_id)+" X:" + str(self.position_x) + " Y:" + str(self.position_y) + " Z:" + str(self.position_z) + " Rot:" + str(self.rotation) + " Unknown1:" + str(self.unknown1) + ">"
 
 class ZMB_CAME(gh.ZDS_GenericElementHeaderRaw):
     children: list = []
@@ -539,7 +546,7 @@ class ZMB_CAME(gh.ZDS_GenericElementHeaderRaw):
 
     def init(self):
         print("Loading Section: " + self.identification)
-        if len(self.data) > 12:
+        if len(self.data) > self.header_size:
             print("[CAMERA] SECTION HAS DATA! WOOOOH!")
 
         self.children_count = d.UInt16(self.data, 8)
