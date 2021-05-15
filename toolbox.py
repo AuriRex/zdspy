@@ -1,4 +1,5 @@
 from zdspy import rom_util
+from zdspy import map2d
 from zdspy import dataio as d
 import os
 import randomize
@@ -9,13 +10,21 @@ print("")
 print("1 - Randomize Entrances")
 print("2 - Extract ROM")
 print("3 - Re-Insert Files into ROM")
+print("4 - Dump Map2D from ROM")
 print("")
 print("###############################")
 
 
 choice = input("> ")
-
-if choice == "2":
+if choice == "4":
+    print("### Map2D dumper ###")
+    indir = "./extracted/root/Map2D"
+    if not os.path.exists(indir):
+        print("Drag and Drop your ROM in here or provide the path.")
+        rom_path = input("> ")
+        rom_util.extract(rom_path, "./extracted/root/", confirm=True)
+    map2d.dump_bitmap_all(indir, "./infodump/Map2D/")
+elif choice == "2":
     print("### EXTRACT ROM CONTENTS ###")
     print("Drag and Drop your ROM in here or provide the path.")
     rom_path = input("> ")

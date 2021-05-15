@@ -374,16 +374,30 @@ def dump_bitmap_all(input_path, output_path):
 
     import os
 
+    tiledir = os.path.join(outdir, "tiles/")
+    palettedir = os.path.join(outdir, "palettes/")
+
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
+    if not os.path.exists(tiledir):
+        os.makedirs(tiledir)
+
+    if not os.path.exists(palettedir):
+        os.makedirs(palettedir)
+
     dirs = []
     # r=root, d=directories, f = files
-    for r, d, f in os.walk(workdir):
-        for directory in d:
-            dirs.append(os.path.join(r, directory))
+    for r, directory, f in os.walk(workdir):
+        for directory2 in directory:
+            path = os.path.join(r, directory2)
+            dirs.append(path)
+            print(path)
 
-    for d in dirs:
-        for _r, _d, f in os.walk(d):
+    for directory in dirs:
+        for _r, _d, f in os.walk(directory):
             for file in f:
-                name = os.path.basename(os.path.normpath(d))
-                print(d+"/"+file)
-                MAP2D(d.ReadFile(d+"/"+file)).save_bitmap(outdir, name+"_"+file[:-4], path_tiles="tiles/", path_palette="palettes/")
+                name = os.path.basename(os.path.normpath(directory))
+                print(directory+"/"+file + " -> " + name)
+                MAP2D(d.ReadFile(directory+"/"+file)).save_bitmap(outdir, name+"_"+file[:-4], path_tiles="tiles/", path_palette="palettes/")
 
