@@ -4,8 +4,10 @@ import ndspy.lz10
 import ndspy.narc
 from zdspy import nsbmd as znsbmd
 from zdspy import zmb as zzmb
+from zdspy import rom_util
 
-workdir = "../../DS/extracted/data/Map/"
+rompath = "./Zelda_PH.nds"
+workdir = "./extracted/root/"
 outdir = "./infodump/"
 
 class ZDS_PH_NARC:
@@ -114,11 +116,15 @@ class ZDS_PH_MAP:
 
 def main():
 
+    if not os.path.exists(workdir):
+        print("No extracted files present, extracting rom first!")
+        rom_util.extract(rompath, workdir, False)
+
     err_log = []
 
     dirs = []
     # r=root, d=directories, f = files
-    for r, d, f in os.walk(workdir):
+    for r, d, f in os.walk(workdir + "Map/"):
         for directory in d:
             dirs.append(os.path.join(r, directory))
 
@@ -140,7 +146,10 @@ def main():
             map_num_2 = c.getName()[4:5]
             filename = "zmb/" + mp_name + "_" + str(map_num) + str(map_num_2) + ".zmb"
             print(filename)
-            zmbl[ zzmb.ZMB( c.getData().getFileByName(filename) ) ] = filename
+            try:
+                zmbl[ zzmb.ZMB( c.getData().getFileByName(filename) ) ] = filename
+            except Exception as err:
+                err_log.append(repr(err) + " | " + filename)
             filename = "nsbmd/" + mp_name + "_" + str(map_num) + str(map_num_2) + ".nsbmd"
             print(filename)
             try:
@@ -410,8 +419,13 @@ def main():
     #######################################################################################
 
     print("Error Log:")
+    err_string = ""
     for err in err_log:
         print(" ",err)
+        err_string += err + "\n"
+
+    f = open(outdir + 'ERROR_LOG.txt', 'wt', encoding='utf-8')
+    f.write(err_string[:-1])
 
     print("## The Legend of Zelda: Phantom Hourglass Rom Info ##")
     print("Number of Maps: "+str(len(mapl)))
@@ -436,10 +450,10 @@ def main():
 
 
     print("Room Hex List:")
-    print("0x8 = Lighting ID")
-    print("0x12 = Music ID")
+    print("8 = Lighting ID")
+    print("12 = Music ID")
     print("Offset           1                   2                   3")
-    print("0x   4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1")
+    print(":)   4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1")
     for i, (ent, v) in enumerate(room_hex_list.items()):
         print(str(i).ljust(4), ent, v)
 

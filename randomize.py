@@ -47,14 +47,17 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
             iden = c.getID()
             filename = "zmb/" + mp_name + "_" + iden + ".zmb"
             print(filename)
-            zmb = zds.ZMB( c.getData().getFileByName(filename) )
-            zmbl[filename] = zmb
-            warph = zmb.get_child("WARP")
-            if not (warph == None):
-                warpcountl[filename] = len(warph.children)
-                for i, wrp in enumerate(warph.children):
-                    print(wrp)
-                    warpl[filename+str(i)] = wrp
+            try:
+                zmb = zds.ZMB( c.getData().getFileByName(filename) )
+                zmbl[filename] = zmb
+                warph = zmb.get_child("WARP")
+                if not (warph == None):
+                    warpcountl[filename] = len(warph.children)
+                    for i, wrp in enumerate(warph.children):
+                        print(wrp)
+                        warpl[filename+str(i)] = wrp
+            except Exception as err:
+                print(err, " | ", filename)
 
     # Saved for later:
     # random_item = random.choice(list)
