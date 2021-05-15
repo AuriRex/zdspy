@@ -17,13 +17,14 @@ def extract(rom_path, e_path, confirm=True):
 
     for i, file in enumerate(rom.files):
         try:
-            print(rom.filenames[i])
+            rom_internal_file_name = rom.filenames[i]
+            # print(rom_internal_file_name)
 
-            path_wf = output + rom.filenames[i]
+            path_wf = output + rom_internal_file_name
             path = path_wf[:len(path_wf)-len(os.path.basename(path_wf))]
 
-            print(path_wf)
-            print(path)
+            # print(path_wf)
+            # print(path)
 
             try:
                 os.makedirs(path)
@@ -34,12 +35,12 @@ def extract(rom_path, e_path, confirm=True):
             if not os.path.isfile(path_wf):
                 with open(path_wf, 'w+b') as f:
                     f.write(file)
-                print("Extracted!")
+                print("[Extracted] " + rom_internal_file_name + " -> " + path_wf)
             else:
-                print("File already extracted!")
+                print("[Skipped] " + rom_internal_file_name + " // " + path_wf)
 
         except KeyError:
-            print("ID " + str(i) + " has no filename!")
+            print("[Ignored] ID " + str(i) + " has no filename!")
 
 # if only_modified is set to True, both files will be hashed and only replaced if the hashes differ!
 def replace(rom_path, i_path, save_path, confirm=True, only_modified=False):
@@ -56,11 +57,11 @@ def replace(rom_path, i_path, save_path, confirm=True, only_modified=False):
     for i, file in enumerate(rom.files):
         try:
             rom_internal_file_name = rom.filenames[i]
-            print(rom_internal_file_name)
+            #print(rom_internal_file_name)
 
             path_wf = i_path + rom_internal_file_name
 
-            print(path_wf)
+            #print(path_wf)
 
             if os.path.isfile(path_wf):
                 with open(path_wf, 'rb') as f:
@@ -73,17 +74,19 @@ def replace(rom_path, i_path, save_path, confirm=True, only_modified=False):
                         if not (h == h_romfile):
                             # Replace File!
                             rom.setFileByName(rom_internal_file_name, bin_file)
-                            print("Inserted!")
+                            print("[Inserted] " + rom_internal_file_name + " <- " + path_wf)
                         else:
-                            print("File hasn't been modified!")
+                            pass
+                            #print("File hasn't been modified!")
                     else:
                         rom.setFileByName(rom_internal_file_name, bin_file)
-                        print("Inserted!")
+                        print("[Inserted] " + rom_internal_file_name + " <- " + path_wf)
             else:
-                print("File skipped - File doesn't exist!")
+                pass
+                #print("File skipped - File doesn't exist!")
 
         except KeyError:
-            print("ID " + str(i) + " has no filename!")
+            print("[Ignored] ID " + str(i) + " has no filename!")
 
     print("Saving rom...")
     with open(save_path, 'wb') as f:
