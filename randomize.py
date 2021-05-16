@@ -1,6 +1,6 @@
 import random
 import os
-from getinfo import ZDS_PH_MAP, ZDS_PH_AREA
+from zdspy.helpers import ZDS_PH_MAP, ZDS_PH_AREA
 from zdspy import zmb as zds
 
 def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
