@@ -43,8 +43,11 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
 
     zmb_cache: dict[str, type("ZMB")] = {}
 
-    warpcountl = {}
-    warpl = {}
+    warp_count_list = {}
+    # key = filename (zmb/dngn_main_00.zmb) + warp child number
+    warp_list = {}
+    
+    
 
     phantom_map: ZDS_PH_MAP
     for phantom_map in loaded_maps_list:
@@ -59,11 +62,12 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
                 zmb_cache[filename] = zmb
                 warph = zmb.get_child("WARP")
                 if not (warph == None):
-                    warpcountl[filename] = len(warph.children)
+                    warp_count_list[filename] = len(warph.children)
+                    wrp: zds.ZMB_WARP_CE
                     for i, wrp in enumerate(warph.children):
                         print(wrp)
-                        if not (filename+str(i) in warpl):
-                            warpl[filename+str(i)] = wrp
+                        if not (filename+str(i) in warp_list):
+                            warp_list[filename+str(i)] = wrp.clone()
                         else:
                             raise Exception("Duplicate filename: \"" + filename + str(i) + "\".")
             except Exception as err:
@@ -74,10 +78,10 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
 
     # print(zmb_cache)
 
-    # print(warpl)
+    # print(warp_list)
 
 
-    # for m, w in warpl.items():
+    # for m, w in warp_list.items():
     #     if int(m.split(".zmb")[1]) == 0:
     #         mapname = m.split(".zmb")[0][4:]
     #         levelname = mapname[:-3]
@@ -85,24 +89,24 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
     #         print(levelname + ": " + mapname)
     #     print(m.split(".zmb")[1] + ": " + m.split(".zmb")[0] + " --- " + str(w))
 
-    # print(warpcountl)
+    # print(warp_count_list)
 
     # Create a list of tuples sorted by index 1 i.e. value field     
-    listofTuples = sorted(warpcountl.items() ,  key=lambda x: x[1])
+    listofTuples = sorted(warp_count_list.items() ,  key=lambda x: x[1])
     # Iterate over the sorted sequence
     for elem in listofTuples:
         #out_str = str(elem[0]) + " " + str(elem[1]) + "\n" + out_str
         print(elem[0] , " ::" , elem[1] )
 
-    runBanList(warpl, banlist, enableBanlist)
-    runBanList(warpcountl, banlist, enableBanlist)
+    runBanList(warp_list, banlist, enableBanlist)
+    runBanList(warp_count_list, banlist, enableBanlist)
 
     if randoType == "nl":
-        n_warpl = nologic(warpl)
+        n_warpl = nologic(warp_list)
     elif randoType == "nld":
-        n_warpl = nologicdual(warpl)
+        n_warpl = nologicdual(warp_list)
     elif randoType == "nll":
-        n_warpl = nologiclinked(warpl)
+        n_warpl = nologiclinked(warp_list)
     else:
         raise ValueError("Error. "+randoType+" not found!")
 
@@ -132,7 +136,7 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
             # print(filename)
 
             try:
-                numofwarps = warpcountl[filename]
+                numofwarps = warp_count_list[filename]
             except KeyError:
                 numofwarps = 0
             
@@ -163,16 +167,16 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
         f.write(err_string[:-1])
 
 
-def nologic(warpl):
+def nologic(warp_list):
     n_warpl = {}
-    o_warpl = warpl.copy()
+    o_warpl = warp_list.copy()
     print()
-    p_fname, p_warp_ce = random.choice(list(warpl.items()))
+    p_fname, p_warp_ce = random.choice(list(warp_list.items()))
     first = (p_fname, p_warp_ce)
-    del warpl[p_fname]
-    for i in range(len(warpl)):
-        fname, warp_ce = random.choice(list(warpl.items()))
-        del warpl[fname]
+    del warp_list[p_fname]
+    for i in range(len(warp_list)):
+        fname, warp_ce = random.choice(list(warp_list.items()))
+        del warp_list[fname]
 
         # uid, ft, mid, dwid, dest, rundir
         n_warp_ce = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, p_warp_ce.map_id, p_warp_ce.destination_warp_id, p_warp_ce.destination, warp_ce.run_direction )
@@ -185,28 +189,40 @@ def nologic(warpl):
     n_warpl[fname] = n_warp_ce
     return n_warpl
 
-def nologicdual(warpl): # Similar to nl
+def nologicdual(warp_list): # Similar to nl
     n_warpl = {}
-    o_warpl = warpl.copy()
+    o_warpl = warp_list.copy()
     print()
-    for i in range(int(round(len(warpl)/2))):
-        fname, warp_ce = random.choice(list(warpl.items()))
-        del warpl[fname]
-        p_fname, p_warp_ce = random.choice(list(warpl.items()))
-        del warpl[p_fname]
+    for i in range(int(round(len(warp_list)/2))):
+        fname, warp_ce = random.choice(list(warp_list.items()))
+        del warp_list[fname]
+        p_fname, p_warp_ce = random.choice(list(warp_list.items()))
+        del warp_list[p_fname]
 
         # uid, ft, mid, dwid, dest, rundir
         n_warpl[fname] = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, p_warp_ce.map_id, p_warp_ce.destination_warp_id, p_warp_ce.destination, warp_ce.run_direction )
         n_warpl[p_fname] = zds.ZMB_WARP_CE( p_warp_ce.UID, p_warp_ce.fade_type, warp_ce.map_id, warp_ce.destination_warp_id, warp_ce.destination, p_warp_ce.run_direction )
     if len(n_warpl) < len(o_warpl):
-        fname, warp_ce = random.choice(list(warpl.items()))
+        fname, warp_ce = random.choice(list(warp_list.items()))
         n_warpl[fname] = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, warp_ce.map_id, warp_ce.destination_warp_id, warp_ce.destination, warp_ce.run_direction )
     print(len(o_warpl),len(n_warpl))
     # input("Breakpoint :)")
     return n_warpl
 
+class INFO:
+    map_name: str
+    level_name: str
+    map_id: str
+
+    def __init__(self, warp_list_key: str):
+        self.map_name = warp_list_key.split(".zmb")[0][4:] # zmb/dngn_main_00.zmb
+        self.level_name = self.map_name[:-3]
+        self.map_id = self.map_name[-2:]
+
+
 def splitMapInfo(fname):
-    mapname = fname.split(".zmb")[0][4:]
+    """Returns a list where the first element (idx:0) is the mapname / folder name, """
+    mapname = fname.split(".zmb")[0][4:] # zmb/dngn_main_00.zmb
     levelname = mapname[:-3]
     mapid = mapname[-2:]
     # print("Levelname:",levelname)
@@ -214,27 +230,27 @@ def splitMapInfo(fname):
     # print("Mapid:    ",mapid)
     return [mapname, levelname, mapid]
 
-def nologiclinked(warpl):
-    n_warpl = {}
-    o_warpl = warpl.copy()
+def nologiclinked(warp_list):
+    new_warp_list = {}
+    original_warp_list_copy = warp_list.copy()
     print()
-    for i in range(int(round(len(warpl)/2))):
-        fname, warp_ce = random.choice(list(warpl.items()))
-        info = splitMapInfo(fname)
-        del warpl[fname]
-        p_fname, p_warp_ce = random.choice(list(warpl.items()))
-        p_info = splitMapInfo(p_fname)
-        del warpl[p_fname]
+    for i in range(int(round(len(warp_list)/2))):
+        fname, warp_ce = random.choice(list(warp_list.items()))
+        info = INFO(fname) # splitMapInfo(fname)
+        del warp_list[fname]
+        p_fname, p_warp_ce = random.choice(list(warp_list.items()))
+        p_info = INFO(p_fname) # splitMapInfo(p_fname)
+        del warp_list[p_fname]
 
         # uid, ft, mid, dwid, dest, rundir
-        n_warpl[fname] = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, int(p_info[2]), p_warp_ce.destination_warp_id, p_info[1], warp_ce.run_direction )
-        n_warpl[p_fname] = zds.ZMB_WARP_CE( p_warp_ce.UID, p_warp_ce.fade_type, int(info[2]), warp_ce.destination_warp_id, info[1], p_warp_ce.run_direction )
-    if len(n_warpl) < len(o_warpl):
-        fname, warp_ce = random.choice(list(warpl.items()))
-        n_warpl[fname] = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, warp_ce.map_id, warp_ce.destination_warp_id, warp_ce.destination, warp_ce.run_direction )
-    print(len(o_warpl),len(n_warpl))
+        new_warp_list[fname] = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, int(p_info.map_id), p_warp_ce.destination_warp_id, p_info.level_name, warp_ce.run_direction )
+        new_warp_list[p_fname] = zds.ZMB_WARP_CE( p_warp_ce.UID, p_warp_ce.fade_type, int(info.map_id), warp_ce.destination_warp_id, info.level_name, p_warp_ce.run_direction )
+    if len(new_warp_list) < len(original_warp_list_copy):
+        fname, warp_ce = random.choice(list(warp_list.items()))
+        new_warp_list[fname] = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, warp_ce.map_id, warp_ce.destination_warp_id, warp_ce.destination, warp_ce.run_direction )
+    print(len(original_warp_list_copy), len(new_warp_list))
     # input("Breakpoint :)")
-    return n_warpl
+    return new_warp_list
 
 
 def runBanList(thelist, banlist, enableBanlist):
@@ -242,10 +258,10 @@ def runBanList(thelist, banlist, enableBanlist):
         removeList = []
         for f, w in thelist.items():
             for ban in banlist:
-                if ban in f and f not in removeList:
-                    print("[Banlist] Removing \""+f+"\"")
+                if (ban in f) and (f not in removeList):
                     removeList.append(f)
         for f in removeList:
+            print("[Banlist] Removing \""+f+"\"")
             del thelist[f]
 
 if __name__ == "__main__":
