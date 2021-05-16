@@ -107,6 +107,10 @@ class ZMB_WARP_CE:
     def __str__(self) -> str:
         return ("WUID:"+str(self.UID)+ " FadeType:"+str(self.fade_type)+ " MapID:"+str(self.map_id)+ " DestWUID-1:"+str(self.destination_warp_id) + " WDest:"+self.destination + " RunDir(Rotation):"+str(self.run_direction))
 
+    def clone(self) -> type("ZMB_WARP_CE"):
+        """Returns a new instance with the same values."""
+        return ZMB_WARP_CE(self.UID, self.fade_type, self.map_id, self.destination_warp_id, self.destination, self.run_direction)
+
     def save(self) -> bytearray:
         buffer = bytearray(24) # COMPLETE! :)
 
@@ -451,7 +455,7 @@ class ZMB_PLYR(gh.ZDS_GenericElementHeaderRaw):
     def init(self):
         print("Loading Section: " + self.identification)
 
-        
+        self.children = []
         self.children_count = d.UInt16(self.data, 8)
         print("Children: "+str(self.children_count))
 
@@ -508,7 +512,7 @@ class ZMB_PLYR_CE:
         self.entrance_id = d.UInt8(self.data, 0xE)
         self.unknown1 = d.UInt8(self.data, 0xF)
 
-        print(self)
+        print(str(self) + " [" + str(num) + "]")
         # print("PLYR_CE:"+" HEX:" + str(self.data.hex()) + " [:"+str(num)+"] ")
 
     def save(self) -> bytearray:
