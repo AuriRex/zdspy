@@ -19,6 +19,9 @@ __pycache__/
 # NDS roms
 *.nds
 
+# Zelda Map Binary
+*.zmb
+
 # Distribution / packaging
 .Python
 build/
