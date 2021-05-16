@@ -1,6 +1,6 @@
 import random
 import os
-from getinfo import ZDS_PH_MAP
+from getinfo import ZDS_PH_MAP, ZDS_PH_AREA
 from zdspy import zmb as zds
 
 def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
@@ -26,52 +26,53 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
 
     dirs = []
     # r=root, d=directories, f = files
-    for r, d, f in os.walk(workdir):
-        for directory in d:
-            dirs.append(os.path.join(r, directory))
+    for root, directories, _ in os.walk(workdir):
+        for name in directories:
+            dirs.append(os.path.join(root, name))
 
 
-    mapl = []
+    loaded_maps_list: list[type("ZDS_PH_MAP")] = []
 
     print("Loading maps...")
 
-    for d in dirs:
-        mapl.append( ZDS_PH_MAP( d, p=False ) )
+    for directory in dirs:
+        print("[Reading] " + directory)
+        loaded_maps_list.append( ZDS_PH_MAP( directory, debug_print=False ) )
 
+    # w_mapl = loaded_maps_list.copy() # Used to write the new Values to
 
-    w_mapl = mapl.copy() # Used to write the new Values to
-
-    zmbl = {}
+    zmb_cache: dict[str, type("ZMB")] = {}
 
     warpcountl = {}
     warpl = {}
 
-    for mp in mapl:
-        mp_name = mp.getName()
-        print(mp_name)
-        for c in mp.children:
-            iden = c.getID()
-            filename = "zmb/" + mp_name + "_" + iden + ".zmb"
+    phantom_map: ZDS_PH_MAP
+    for phantom_map in loaded_maps_list:
+        print(phantom_map.getName())
+
+        map_area: ZDS_PH_AREA
+        for map_area in phantom_map.children:
+            filename = "zmb/" + phantom_map.getName() + "_" + map_area.getID() + ".zmb"
             print(filename)
             try:
-                zmb = zds.ZMB( c.getData().getFileByName(filename) )
-                zmbl[filename] = zmb
+                zmb = zds.ZMB( map_area.getArchive().getFileByName(filename) )
+                zmb_cache[filename] = zmb
                 warph = zmb.get_child("WARP")
                 if not (warph == None):
                     warpcountl[filename] = len(warph.children)
                     for i, wrp in enumerate(warph.children):
                         print(wrp)
-                        warpl[filename+str(i)] = wrp
+                        if not (filename+str(i) in warpl):
+                            warpl[filename+str(i)] = wrp
+                        else:
+                            raise Exception("Duplicate filename: \"" + filename + str(i) + "\".")
             except Exception as err:
-                if not (mp_name in banlist):
-                    banlist.append(mp_name)
-                # print(err, " | ", filename)
-                error_log.append(str(err.args[0]) + " | " + filename)
+                error_log.append(repr(err) + " | " + filename)
 
     # Saved for later:
     # random_item = random.choice(list)
 
-    # print(zmbl)
+    # print(zmb_cache)
 
     # print(warpl)
 
@@ -121,12 +122,13 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
     print("Writing changes ...")
 
     # Write new Warps to maplist
-    for mp in w_mapl:
-        mp_name = mp.getName()
-        print(mp_name + " ...")
-        for c in mp.children:
-            iden = c.getID()
-            filename = "zmb/" + mp_name + "_" + iden + ".zmb"
+    phantom_map: ZDS_PH_MAP
+    for phantom_map in loaded_maps_list:
+        print(phantom_map.getName() + " ...")
+
+        map_area: ZDS_PH_AREA
+        for map_area in phantom_map.children:
+            filename = "zmb/" + phantom_map.getName() + "_" + map_area.getID() + ".zmb"
             # print(filename)
 
             try:
@@ -140,15 +142,15 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
                 for i in range(numofwarps):
                     warp_list.append(n_warpl[filename+str(i)])
                     
-                zmb = zmbl[filename]
-                warph = zmb.get_child("WARP")
+                zmb = zmb_cache[filename]
+                warph: zds.ZMB_WARP = zmb.get_child("WARP")
                 if not (warph == None):
                     warph.randoReplace(warp_list)
                     
-                c.getData().setFileByName(filename, zmb.save())
+                map_area.getArchive().setFileByName(filename, zmb.save())
 
 
-        mp.save(outdir)
+        phantom_map.saveToFolder(outdir)
         # input("Neat Break Point :)")
 
     error_path = os.path.join(outdir, "../", "RANDOMIZER_ERROR_LOG.txt")
@@ -240,12 +242,11 @@ def runBanList(thelist, banlist, enableBanlist):
         removeList = []
         for f, w in thelist.items():
             for ban in banlist:
-                if ban in f:
+                if ban in f and f not in removeList:
                     print("[Banlist] Removing \""+f+"\"")
                     removeList.append(f)
         for f in removeList:
-            if f in thelist:
-                del thelist[f]
+            del thelist[f]
 
 if __name__ == "__main__":
     randomize(404, "../../DS/extracted/data/Map/", "../../DS/randomize/data/Map/")
