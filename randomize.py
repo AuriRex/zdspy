@@ -15,6 +15,37 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
     banlist.append("isle_first")
     banlist.append("isle_ice")
 
+    if randoType == "bl":
+        #Stops randomisation of dungeons
+        banlist.append("dngn_wisdom4")
+        banlist.append("dngn_wisdom3")
+        banlist.append("dngn_wisdom2")
+        banlist.append("dngn_wisdom")
+        banlist.append("dngn_wind")
+        banlist.append("dngn_water")
+        banlist.append("dngn_torri")
+        banlist.append("dngn_power")
+        banlist.append("dngn_pluck")
+        banlist.append("dngn_main_f")
+        banlist.append("dngn_main")
+        banlist.append("dngn_wisdom3")
+        banlist.append("dngn_hou")
+        banlist.append("dngn_hidari")
+        banlist.append("dngn_ghost")
+        banlist.append("dngn_flame")
+        banlist.append("dngn_first")
+        #Stops randomisation of dungeon bosses
+        banlist.append("boss_wisdom")
+        banlist.append("boss_wind")
+        banlist.append("boss_water")
+        banlist.append("boss_power")
+        banlist.append("boss_pluck")
+        banlist.append("boss_last3")
+        banlist.append("boss_last2")
+        banlist.append("boss_last1")
+        banlist.append("boss_ghost")
+        banlist.append("boss_flame")
+    
     # Horrible things
     banlist.append("sea_salvage")
     banlist.append("sea_fishing")
@@ -23,6 +54,7 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
     #   nl -> no logic
     #   nld -> no logic dual
     #   nll -> no logic linked
+    #   bl -> basic logic
 
     dirs = []
     # r=root, d=directories, f = files
@@ -107,6 +139,8 @@ def randomize(seed, workdir, outdir, enableBanlist=True, randoType="nll"):
         n_warpl = nologicdual(warp_list)
     elif randoType == "nll":
         n_warpl = nologiclinked(warp_list)
+    elif randoType == "bl":
+        n_warpl = basiclogic(warp_list)
     else:
         raise ValueError("Error. "+randoType+" not found!")
 
@@ -251,6 +285,28 @@ def nologiclinked(warp_list):
     print(len(original_warp_list_copy), len(new_warp_list))
     # input("Breakpoint :)")
     return new_warp_list
+
+def basiclogic(warp_list):
+    n_warpl = {}
+    o_warpl = warp_list.copy()
+    print()
+    p_fname, p_warp_ce = random.choice(list(warp_list.items()))
+    first = (p_fname, p_warp_ce)
+    del warp_list[p_fname]
+    for i in range(len(warp_list)):
+        fname, warp_ce = random.choice(list(warp_list.items()))
+        del warp_list[fname]
+
+        # uid, ft, mid, dwid, dest, rundir
+        n_warp_ce = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, p_warp_ce.map_id, p_warp_ce.destination_warp_id, p_warp_ce.destination, warp_ce.run_direction )
+        n_warpl[fname] = n_warp_ce
+        p_fname = fname
+        p_warp_ce = warp_ce
+    # Insert first warp
+    fname, warp_ce = first
+    n_warp_ce = zds.ZMB_WARP_CE( warp_ce.UID, warp_ce.fade_type, p_warp_ce.map_id, p_warp_ce.destination_warp_id, p_warp_ce.destination, warp_ce.run_direction )
+    n_warpl[fname] = n_warp_ce
+    return n_warpl
 
 
 def runBanList(thelist, banlist, enableBanlist):
