@@ -55,6 +55,7 @@ elif choice == "1":
     print("1 - nl -> no logic - completely random (probably the most interresting one)")
     print("2 - nld -> no logic dual - failed at linking two entrances together")
     print("3 - nll -> no logic linked - tries to link two entrances together but fails most of the time because it picks the wrong entrance (default)")
+    print("4 - bl -> basic Logic (still work in progress)")
     
     randomizer_logic = input("> ")
 
@@ -64,6 +65,8 @@ elif choice == "1":
         randoType = "nld"
     elif randomizer_logic == "3":
         randoType = "nll"
+    elif randomizer_logic == "4":
+        randoType = "bl"    
     else:
         randoType = "nll"
 
